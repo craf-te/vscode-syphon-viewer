@@ -9,6 +9,7 @@ helper/**
 vendor/**
 scripts/**
 docs/**
+.github/**
 CLAUDE.md
 esbuild.mjs
 tsconfig.json
@@ -17,7 +18,7 @@ package-lock.json
 **/*.map
 **/*.ts
 **/.DS_Store
-!dist/**
+!dist/extension.js
 !media/**
 !bin/**
 !Frameworks/**

@@ -6,7 +6,8 @@ import Metal
 import QuartzCore
 import SyphonBridgeCore
 
-let version = "0.1.0"
+// Keep in step with the extension version in package.json.
+let version = "1.0.0"
 
 let transport = StdioTransport()
 

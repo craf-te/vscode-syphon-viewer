@@ -48,3 +48,6 @@ MIT.
 This extension bundles Syphon.framework, which is BSD 3-Clause licensed
 (Copyright 2010 Tom Butterworth & Anton Marini). Its full license text ships
 with the extension in `THIRD-PARTY-LICENSES.txt`.
+
+Syphon Viewer is an independent project, not affiliated with or endorsed by
+the Syphon Project.

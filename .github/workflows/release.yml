@@ -109,7 +109,7 @@ jobs:
           FILE: ${{ steps.package.outputs.file }}
         run: |
           # Guard against shipping internal notes or the wrong platform build.
-          if unzip -l "$FILE" | grep -qiE "CLAUDE\.md|superpowers|/docs/"; then
+          if unzip -l "$FILE" | grep -qiE "CLAUDE\.md|superpowers|/docs/|/\.github/|\.map$"; then
             echo "::error::internal files leaked into the vsix"
             unzip -l "$FILE"
             exit 1
