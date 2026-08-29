@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.0.1
+
+Packaging only. Nothing changes in how the preview behaves.
+
+- The vsix no longer ships the CI workflow file or a source map.
+- The helper reports the same version as the extension.
+
 ## 1.0.0
 
 First release.

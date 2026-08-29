@@ -3,7 +3,7 @@
   "displayName": "Syphon Viewer",
   "description": "Show Syphon video in a VS Code editor tab.",
   "icon": "media/icon.png",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "publisher": "craf-te",
   "author": {
     "name": "craf'te"
