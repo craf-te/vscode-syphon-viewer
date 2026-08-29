@@ -14,13 +14,15 @@ Intel Macs and Windows are not supported.
 
 ## Getting started
 
-1. Start something that publishes over Syphon. TouchDesigner, Resolume,
-   MadMapper, VDMX and Processing all can.
-2. Run **Syphon Viewer: Open Preview** from the Command Palette.
-3. Pick a server from the dropdown and press **Connect**.
+1. Start an app that publishes video over Syphon.
+2. Press `Cmd+Shift+P` to open the Command Palette, type `Syphon Viewer`, and
+   run **Syphon Viewer: Open Preview**. The preview opens in a tab beside your
+   code.
+3. Pick a source from the dropdown and press **Connect**.
 
-The list updates as sources appear and disappear. If a source you were watching
-comes back under the same name, the preview reconnects on its own.
+The dropdown lists whatever is publishing on your Mac right now, and follows
+sources as they appear and disappear. If one you were watching comes back under
+the same name, the preview reconnects on its own.
 
 ## Fidelity
 
