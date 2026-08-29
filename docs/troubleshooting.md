@@ -2,8 +2,9 @@
 
 ## The server list is empty
 
-Check that an app is actually publishing over Syphon. In TouchDesigner that
-means a `Syphon Spout Out TOP` with an input connected.
+Check that an app is actually publishing over Syphon. Publishing is usually a
+separate output node or export setting that has to be switched on and given an
+input first — it is rarely on by default.
 
 The bundled test server narrows it down:
 
