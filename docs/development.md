@@ -30,11 +30,34 @@ build is already committed, so this only runs on a fresh checkout.
 See [troubleshooting.md](./troubleshooting.md) for why the pinned build is used
 and when `--build` is worth it.
 
-## Publishing
+## Releasing
+
+Releases go through the **Release** workflow in GitHub Actions, run manually
+from the Actions tab. One run does all of it: pick the version, update the
+changelog, build, test, tag, cut the GitHub release and publish to the
+Marketplace.
+
+Inputs:
+
+| Input | Meaning |
+|---|---|
+| `bump` | `patch`, `minor` or `major`. Ignored if `version` is set. |
+| `version` | An exact `x.y.z`, when the bump is not what you want. |
+| `notes` | The changelog entry. Defaults to commit subjects since the last tag. |
+| `publish` | Untick to cut a GitHub release without touching the Marketplace. |
+
+The Marketplace step needs a Personal Access Token with the
+**Marketplace → Manage** scope, stored as the `VSCODE_MARKETPLACE` secret.
+
+The job runs on an Apple Silicon runner and fails immediately if it is not,
+since the helper is an arm64 binary linked against Syphon.framework. Publishing
+is the last step, because it is the only one that cannot be undone.
+
+To see what a release would do to the version and changelog without touching
+anything:
 
 ```bash
-npm run package
-npx vsce publish --target darwin-arm64
+node scripts/prepare-release.mjs --bump minor --dry-run
 ```
 
 Only `darwin-arm64` is published. Without the target flag the extension would be

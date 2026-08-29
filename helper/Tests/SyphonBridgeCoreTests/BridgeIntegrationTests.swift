@@ -137,6 +137,13 @@ final class BridgeIntegrationTests: XCTestCase {
 
         // Give Syphon a moment to announce.
         Thread.sleep(forTimeInterval: 1.0)
+
+        // The server exits immediately when there is no Metal device, which is
+        // the case on some CI machines. That is a skip, not a failure.
+        guard p.isRunning else {
+            serverProcess = nil
+            throw XCTSkip("TestSyphonServer exited on start; no Metal device?")
+        }
     }
 
     /// Build products sit next to the test bundle.

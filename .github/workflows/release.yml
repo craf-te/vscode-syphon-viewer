@@ -1,0 +1,194 @@
+name: Release
+
+# Publishing to the Marketplace cannot be undone, so this never runs on a push.
+on:
+  workflow_dispatch:
+    inputs:
+      bump:
+        description: "Version bump"
+        type: choice
+        options: [patch, minor, major]
+        default: patch
+      version:
+        description: "Exact version (x.y.z). Overrides the bump."
+        type: string
+        default: ""
+      notes:
+        description: "Changelog entry. Defaults to commit subjects since the last tag."
+        type: string
+        default: ""
+      publish:
+        description: "Publish to the VS Code Marketplace"
+        type: boolean
+        default: true
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    # The helper is an arm64 Swift binary linked against Syphon.framework, so
+    # this has to be an Apple Silicon runner.
+    runs-on: macos-15
+    timeout-minutes: 45
+
+    steps:
+      - name: Check out
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Fail early if the runner is not Apple Silicon
+        run: |
+          arch="$(uname -m)"
+          echo "runner arch: $arch"
+          if [ "$arch" != "arm64" ]; then
+            echo "::error::This extension only builds on Apple Silicon, got $arch"
+            exit 1
+          fi
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Work out the version and update the changelog
+        id: prepare
+        # Inputs go through env rather than being expanded into the shell, so a
+        # quote or backtick in the notes cannot break or reinterpret the command.
+        env:
+          BUMP: ${{ inputs.bump }}
+          EXACT_VERSION: ${{ inputs.version }}
+          NOTES: ${{ inputs.notes }}
+        run: |
+          args=(--bump "$BUMP" --notes "$NOTES")
+          if [ -n "$EXACT_VERSION" ]; then
+            args+=(--version "$EXACT_VERSION")
+          fi
+          node scripts/prepare-release.mjs "${args[@]}"
+
+      - name: Refuse to release a version that already has a tag
+        run: |
+          tag="v${{ steps.prepare.outputs.version }}"
+          if git rev-parse "$tag" >/dev/null 2>&1; then
+            echo "::error::$tag already exists"
+            exit 1
+          fi
+
+      - name: Build
+        run: npm run build
+
+      - name: Test
+        run: |
+          npm run test:ts
+          npm run test:swift
+
+      # The E2E suite drives a real VS Code window. It is the only check that
+      # covers the webview, so a failure here should stop the release.
+      - name: Test (E2E)
+        run: npm run test:e2e
+
+      - name: Package
+        id: package
+        run: |
+          npx vsce package --target darwin-arm64
+          file="$(ls syphon-viewer-darwin-arm64-*.vsix)"
+          echo "file=$file" >> "$GITHUB_OUTPUT"
+          echo "sha256=$(shasum -a 256 "$file" | awk '{print $1}')" >> "$GITHUB_OUTPUT"
+
+      - name: Verify the package
+        env:
+          FILE: ${{ steps.package.outputs.file }}
+        run: |
+          # Guard against shipping internal notes or the wrong platform build.
+          if unzip -l "$FILE" | grep -qiE "CLAUDE\.md|superpowers|/docs/"; then
+            echo "::error::internal files leaked into the vsix"
+            unzip -l "$FILE"
+            exit 1
+          fi
+          unzip -p "$FILE" extension.vsixmanifest | grep -q 'TargetPlatform="darwin-arm64"' \
+            || { echo "::error::vsix is not targeted at darwin-arm64"; exit 1; }
+          unzip -l "$FILE" | grep -q "extension/bin/syphon-bridge" \
+            || { echo "::error::helper binary missing from the vsix"; exit 1; }
+          unzip -l "$FILE" | grep -q "THIRD-PARTY-LICENSES.txt" \
+            || { echo "::error::third-party licenses missing from the vsix"; exit 1; }
+
+      - name: Commit and tag
+        env:
+          VERSION: ${{ steps.prepare.outputs.version }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add package.json CHANGELOG.md
+          git commit -m "chore: release v$VERSION"
+          git tag -a "v$VERSION" -m "v$VERSION"
+          git push origin HEAD:"${GITHUB_REF_NAME}"
+          git push origin "v$VERSION"
+
+      - name: Create the GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ steps.prepare.outputs.version }}
+          FILE: ${{ steps.package.outputs.file }}
+          SHA256: ${{ steps.package.outputs.sha256 }}
+          NOTES: ${{ steps.prepare.outputs.notes }}
+        run: |
+          # printf, not a heredoc: NOTES is free text and must never be
+          # expanded or command-substituted.
+          printf '%s\n\n' "$NOTES" > /tmp/notes.md
+          {
+            echo '## Install'
+            echo
+            echo 'Requires macOS on Apple Silicon and VS Code 1.135 or later.'
+            echo
+            echo '```bash'
+            echo "code --install-extension $FILE"
+            echo '```'
+            echo
+            echo 'Or run `Extensions: Install from VSIX...` from the Command Palette.'
+            echo
+            echo '```'
+            echo "sha256  $SHA256"
+            echo '```'
+          } >> /tmp/notes.md
+          gh release create "v$VERSION" \
+            --title "v$VERSION" \
+            --notes-file /tmp/notes.md \
+            --latest \
+            "$FILE"
+
+      # Last, because this is the step that cannot be taken back.
+      - name: Publish to the Marketplace
+        if: ${{ inputs.publish }}
+        env:
+          VSCE_PAT: ${{ secrets.VSCODE_MARKETPLACE }}
+        run: |
+          if [ -z "$VSCE_PAT" ]; then
+            echo "::error::the VSCODE_MARKETPLACE secret is empty"
+            exit 1
+          fi
+          # Publish the exact file that was attached to the release.
+          npx vsce publish --packagePath "${{ steps.package.outputs.file }}"
+
+      - name: Summary
+        env:
+          VERSION: ${{ steps.prepare.outputs.version }}
+          SHA256: ${{ steps.package.outputs.sha256 }}
+        run: |
+          {
+            echo "## Released v$VERSION"
+            echo
+            echo "| | |"
+            echo "|---|---|"
+            echo "| Package | \`${{ steps.package.outputs.file }}\` |"
+            echo "| sha256 | \`$SHA256\` |"
+            echo "| Marketplace | ${{ inputs.publish && 'published' || 'skipped' }} |"
+          } >> "$GITHUB_STEP_SUMMARY"
