@@ -1,0 +1,122 @@
+/* Follow VS Code's theme variables; never hard-code a colour. */
+html, body {
+  height: 100%;
+  margin: 0;
+  /* Never show a horizontal scrollbar, even if wrapping leaves a stray pixel. */
+  overflow-x: clip;
+  background: var(--vscode-editor-background);
+  color: var(--vscode-foreground);
+  font-family: var(--vscode-font-family);
+  font-size: var(--vscode-font-size);
+}
+
+body {
+  display: flex;
+  flex-direction: column;
+}
+
+.toolbar {
+  display: flex;
+  /* Wrap onto another line rather than scrolling when the panel is narrow. */
+  flex-wrap: wrap;
+  /* 'safe' keeps controls from overflowing out of reach when the content is
+     wider than the container. */
+  align-items: safe center;
+  gap: 6px 8px;
+  padding: 6px 10px;
+  border-bottom: 1px solid var(--vscode-panel-border);
+  flex: 0 0 auto;
+}
+
+.toolbar select,
+.toolbar button {
+  background: var(--vscode-dropdown-background);
+  color: var(--vscode-dropdown-foreground);
+  border: 1px solid var(--vscode-dropdown-border);
+  padding: 3px 8px;
+  font-family: inherit;
+  font-size: inherit;
+}
+
+/* Server names can be long. Without min-inline-size: 0 a flex item will not
+   shrink below its content width, and that is where overflow comes from. */
+.toolbar select {
+  flex: 1 1 9rem;
+  min-inline-size: 0;
+  max-inline-size: 100%;
+}
+
+.toolbar button {
+  background: var(--vscode-button-background);
+  color: var(--vscode-button-foreground);
+  border: none;
+  cursor: pointer;
+  /* The button never shrinks; it has to stay wide enough to press. */
+  flex: 0 0 auto;
+}
+
+.toolbar button:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+/* The status text may shrink, and ellipsises when it no longer fits. */
+.status {
+  flex: 1 1 6rem;
+  min-inline-size: 0;
+  opacity: 0.85;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.status.error { color: var(--vscode-errorForeground); }
+
+/* A thin bar under the video. Small and faint so it does not pull the eye. */
+.statusbar {
+  flex: 0 0 auto;
+  display: flex;
+  justify-content: flex-end;
+  padding: 3px 10px;
+  min-height: 1.4em;
+  border-top: 1px solid var(--vscode-panel-border);
+}
+
+.stats {
+  /* As a flex item, text-overflow does nothing without min-inline-size: 0;
+     the text would simply overflow instead. */
+  min-inline-size: 0;
+  font-size: 0.85em;
+  opacity: 0.55;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.stage {
+  position: relative;
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--vscode-editorWidget-background);
+}
+
+#canvas {
+  max-width: 100%;
+  max-height: 100%;
+  /* Letterbox. The aspect ratio comes from the canvas width/height attributes. */
+  object-fit: contain;
+  display: none;
+}
+
+#canvas.live { display: block; }
+
+.placeholder {
+  opacity: 0.6;
+  padding: 16px;
+  text-align: center;
+}
+
+.placeholder.hidden { display: none; }

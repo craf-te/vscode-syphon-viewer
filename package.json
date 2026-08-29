@@ -1,0 +1,80 @@
+{
+  "name": "syphon-viewer",
+  "displayName": "Syphon Viewer",
+  "description": "Show Syphon video in a VS Code editor tab.",
+  "icon": "media/icon.png",
+  "version": "1.0.0",
+  "publisher": "craf-te",
+  "author": {
+    "name": "craf'te"
+  },
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/craf-te/vscode-syphon-viewer.git"
+  },
+  "homepage": "https://github.com/craf-te/vscode-syphon-viewer",
+  "bugs": {
+    "url": "https://github.com/craf-te/vscode-syphon-viewer/issues"
+  },
+  "engines": {
+    "vscode": "^1.135.0"
+  },
+  "categories": [
+    "Visualization",
+    "Other"
+  ],
+  "main": "./dist/extension.js",
+  "activationEvents": [],
+  "contributes": {
+    "commands": [
+      {
+        "command": "syphonViewer.open",
+        "title": "Syphon Viewer: Open Preview"
+      }
+    ],
+    "configuration": {
+      "title": "Syphon Viewer",
+      "properties": {
+        "syphonViewer.autoConnect": {
+          "type": "string",
+          "default": "",
+          "description": "Server name to connect to on open. Empty means manual."
+        }
+      }
+    }
+  },
+  "scripts": {
+    "build:helper": "./scripts/build-helper.sh",
+    "build:ext": "node esbuild.mjs",
+    "build": "npm run build:helper && npm run build:ext",
+    "watch": "node esbuild.mjs --watch",
+    "test": "vitest run && cd helper && swift test",
+    "test:ts": "vitest run",
+    "test:swift": "cd helper && swift test",
+    "test:e2e": "tsc -p tsconfig.json && node out/test/e2e/runTest.js",
+    "package": "npm run build && vsce package --target darwin-arm64"
+  },
+  "devDependencies": {
+    "@types/mocha": "^10.0.10",
+    "@types/node": "^24.0.0",
+    "@types/vscode": "^1.134.0",
+    "@vscode/test-electron": "^3.1.0",
+    "@vscode/vsce": "^3.9.2",
+    "esbuild": "^0.28.2",
+    "glob": "^13.0.6",
+    "mocha": "^11.8.0",
+    "typescript": "^5.9.0",
+    "vitest": "^4.1.11"
+  },
+  "keywords": [
+    "syphon",
+    "touchdesigner",
+    "video",
+    "preview",
+    "glsl",
+    "vj",
+    "macos",
+    "metal"
+  ]
+}

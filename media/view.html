@@ -1,0 +1,29 @@
+<meta http-equiv="Content-Security-Policy"
+      content="default-src 'none';
+               img-src {{cspSource}} blob: data:;
+               style-src {{cspSource}};
+               script-src 'nonce-{{nonce}}';">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="stylesheet" href="{{baseUri}}/view.css">
+<title>Syphon Viewer</title>
+
+<div class="toolbar">
+  <select id="server" aria-label="Syphon server">
+    <option value="">Select a server</option>
+  </select>
+  <button id="toggle" disabled>Connect</button>
+  <span id="status" class="status">Not connected</span>
+</div>
+
+<div class="stage">
+  <canvas id="canvas" width="16" height="9"></canvas>
+  <div id="placeholder" class="placeholder">
+    Select a Syphon server to connect.
+  </div>
+</div>
+
+<div class="statusbar">
+  <span id="stats" class="stats"></span>
+</div>
+
+<script nonce="{{nonce}}" src="{{baseUri}}/view.js"></script>

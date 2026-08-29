@@ -1,0 +1,13 @@
+node_modules/
+dist/
+out/
+bin/
+Frameworks/
+helper/.build/
+*.vsix
+.DS_Store
+.vscode-test/
+
+# Agent-internal notes. Unrelated to the product, so keep them untracked.
+.claude/
+docs/superpowers/
